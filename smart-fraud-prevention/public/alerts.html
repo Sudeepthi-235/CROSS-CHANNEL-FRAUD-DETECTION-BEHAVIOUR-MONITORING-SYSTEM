@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alerts — Smart Fraud Prevention</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-mount"></div>
+  <div class="main-content">
+    <div class="page-header">
+      <div><h1>🔔 Security Alerts</h1><p>All security events and suspicious activity notifications.</p></div>
+      <button class="btn btn-outline btn-sm" onclick="markAllRead()">✓ Mark All Read</button>
+    </div>
+    <div class="page-body">
+
+      <!-- Filter buttons -->
+      <div class="flex items-center gap-2 mb-4" style="flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" id="f-all" onclick="filterAlerts('all')">All</button>
+        <button class="btn btn-sm btn-secondary" id="f-new_device" onclick="filterAlerts('new_device')">📱 New Device</button>
+        <button class="btn btn-sm btn-secondary" id="f-blocked_transaction" onclick="filterAlerts('blocked_transaction')">🚫 Blocked Txns</button>
+        <button class="btn btn-sm btn-secondary" id="f-suspicious" onclick="filterAlerts('suspicious')">⚠️ Suspicious</button>
+        <button class="btn btn-sm btn-secondary" id="f-user_report" onclick="filterAlerts('user_report')">📢 My Reports</button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-grid mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+        <div class="stat-card red"><div class="stat-icon">🚫</div><div class="stat-value" id="a-blocked">—</div><div class="stat-label">Blocked Txns</div></div>
+        <div class="stat-card blue"><div class="stat-icon">📱</div><div class="stat-value" id="a-devices">—</div><div class="stat-label">New Devices</div></div>
+        <div class="stat-card orange"><div class="stat-icon">⚠️</div><div class="stat-value" id="a-suspicious">—</div><div class="stat-label">Suspicious</div></div>
+        <div class="stat-card purple"><div class="stat-icon">📢</div><div class="stat-value" id="a-reports">—</div><div class="stat-label">My Reports</div></div>
+      </div>
+
+      <div class="card">
+        <div id="alerts-container">
+          <div class="empty-state loading"><div class="es-icon">⏳</div><p>Loading alerts…</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  window._activePage = 'alerts';
+  requireAuth();
+  const user = getUser();
+  let allAlerts = [];
+
+  async function loadAlerts() {
+    renderSidebar('alerts');
+    const res = await fetch(`/alerts?userId=${user.id}`);
+    allAlerts = await res.json();
+
+    // Stats
+    document.getElementById('a-blocked').textContent = allAlerts.filter(a=>a.type==='blocked_transaction').length;
+    document.getElementById('a-devices').textContent = allAlerts.filter(a=>a.type==='new_device').length;
+    document.getElementById('a-suspicious').textContent = allAlerts.filter(a=>a.type==='suspicious').length;
+    document.getElementById('a-reports').textContent = allAlerts.filter(a=>a.type==='user_report').length;
+
+    filterAlerts('all');
+  }
+
+  function filterAlerts(type) {
+    // Update active buttons
+    ['all','new_device','blocked_transaction','suspicious','user_report'].forEach(k => {
+      const el = document.getElementById('f-'+k);
+      if (el) { el.classList.remove('btn-primary'); el.classList.add('btn-secondary'); }
+    });
+    const active = document.getElementById('f-'+type);
+    if (active) { active.classList.add('btn-primary'); active.classList.remove('btn-secondary'); }
+
+    const filtered = type==='all' ? allAlerts : allAlerts.filter(a=>a.type===type);
+    renderAlerts(filtered);
+  }
+
+  function renderAlerts(alerts) {
+    const container = document.getElementById('alerts-container');
+    if (!alerts.length) {
+      container.innerHTML = `<div class="empty-state"><div class="es-icon">🎉</div><p>No alerts here. You're secure!</p></div>`;
+      return;
+    }
+    const iconMap = {
+      new_device:         { icon:'📱', cls:'device' },
+      blocked_transaction:{ icon:'🚫', cls:'blocked' },
+      suspicious:         { icon:'⚠️', cls:'suspicious' },
+      user_report:        { icon:'📢', cls:'report' }
+    };
+    container.innerHTML = alerts.map(a => {
+      const t = iconMap[a.type] || { icon:'🔔', cls:'device' };
+      const sev = a.severity==='high'?'badge-high':a.severity==='medium'?'badge-medium':'badge-low';
+      return `
+        <div class="alert-item ${a.read?'':'unread'}">
+          <div class="alert-icon ${t.cls}">${t.icon}</div>
+          <div class="alert-content">
+            <div class="al-message">${a.message}</div>
+            <div class="al-time">
+              ${formatTime(a.time)}
+              <span class="badge ${sev}">${a.severity}</span>
+              ${!a.read?'<span style="color:var(--primary);font-size:0.7rem;font-weight:600">● New</span>':''}
+            </div>
+          </div>
+          ${!a.read?'<div class="alert-dot"></div>':''}
+        </div>`;
+    }).join('');
+  }
+
+  async function markAllRead() {
+    await fetch('/alerts/read', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: user.id }) });
+    showToast('All alerts marked as read.','success');
+    loadAlerts();
+  }
+
+  loadAlerts();
+</script>
+</body>
+</html>

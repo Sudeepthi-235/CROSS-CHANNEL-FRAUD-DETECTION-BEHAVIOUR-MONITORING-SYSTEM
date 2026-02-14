@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transactions — Smart Fraud Prevention</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-mount"></div>
+  <div class="main-content">
+    <div class="page-header">
+      <div><h1>💳 All Transactions</h1><p>Complete history of all account transactions including peer transfers.</p></div>
+    </div>
+    <div class="page-body">
+      <div class="flex items-center gap-2 mb-4" style="flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" id="f-all" onclick="filterTxns('all')">All</button>
+        <button class="btn btn-sm btn-secondary" id="f-approved" onclick="filterTxns('approved')">✅ Approved</button>
+        <button class="btn btn-sm btn-secondary" id="f-blocked" onclick="filterTxns('blocked')">🚫 Blocked</button>
+        <button class="btn btn-sm btn-secondary" id="f-pending" onclick="filterTxns('pending')">⏳ Pending</button>
+        <button class="btn btn-sm btn-secondary" id="f-transfer" onclick="filterTxns('transfer')">🏦 Transfers</button>
+        <button class="btn btn-sm btn-secondary" id="f-merchant" onclick="filterTxns('merchant')">🛒 Merchants</button>
+      </div>
+      <div class="card">
+        <div id="txn-full-container">
+          <div class="empty-state loading"><div class="es-icon">⏳</div><p>Loading…</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  window._activePage = 'transactions';
+  requireAuth();
+  const user = getUser();
+  let allTxns = [];
+
+  async function loadAll() {
+    renderSidebar('transactions');
+    const res = await fetch(`/transactions?userId=${user.id}`);
+    allTxns = await res.json();
+    filterTxns('all');
+  }
+
+  function filterTxns(type) {
+    ['all','approved','blocked','pending','transfer','merchant'].forEach(k=>{
+      const e=document.getElementById('f-'+k);
+      if(e){e.classList.remove('btn-primary');e.classList.add('btn-secondary');}
+    });
+    const a=document.getElementById('f-'+type);
+    if(a){a.classList.add('btn-primary');a.classList.remove('btn-secondary');}
+
+    let filtered = allTxns;
+    if(type==='approved') filtered=allTxns.filter(t=>t.status==='approved');
+    else if(type==='blocked') filtered=allTxns.filter(t=>t.status==='blocked');
+    else if(type==='pending') filtered=allTxns.filter(t=>t.status==='pending');
+    else if(type==='transfer') filtered=allTxns.filter(t=>t.transferType==='transfer');
+    else if(type==='merchant') filtered=allTxns.filter(t=>t.transferType!=='transfer');
+    renderTable(filtered);
+  }
+
+  function renderTable(txns) {
+    const c = document.getElementById('txn-full-container');
+    if (!txns.length) {
+      c.innerHTML=`<div class="empty-state"><div class="es-icon">📭</div><p>No transactions in this category.</p></div>`;
+      return;
+    }
+    c.innerHTML=`
+      <table class="txn-table">
+        <thead><tr><th>#</th><th>Recipient / Merchant</th><th>Type</th><th>Amount</th><th>Location</th><th>Device</th><th>Risk Score</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody>${txns.map((t,i)=>`
+          <tr>
+            <td style="color:var(--text-muted);font-size:0.73rem">${i+1}</td>
+            <td class="txn-merchant">${t.recipient||t.merchant||'Transfer'}</td>
+            <td>${typeBadge(t.transferType||'merchant')}</td>
+            <td class="txn-amount">${formatCurrency(t.amount)}</td>
+            <td class="txn-loc">📍 ${t.location}</td>
+            <td class="txn-loc" style="font-size:0.74rem">🖥️ ${t.device}</td>
+            <td><span style="font-weight:700;color:${t.riskScore>=70?'var(--danger)':t.riskScore>=40?'var(--warning)':'var(--success)'}">${t.riskScore||0}</span> ${riskBadge(t.riskLevel)}</td>
+            <td>${statusBadge(t.status)}</td>
+            <td class="txn-time">${formatTime(t.time)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  loadAll();
+</script>
+</body>
+</html>

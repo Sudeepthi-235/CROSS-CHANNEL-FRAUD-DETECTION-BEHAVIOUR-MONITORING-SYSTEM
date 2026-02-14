@@ -1,0 +1,47 @@
+[
+  {
+    "id": "alt001",
+    "userId": "u001",
+    "type": "new_device",
+    "message": "New device login detected: Safari/iPhone from Delhi, India",
+    "time": "2025-06-02T02:10:00Z",
+    "severity": "medium",
+    "read": false
+  },
+  {
+    "id": "alt002",
+    "userId": "u001",
+    "type": "blocked_transaction",
+    "message": "Transaction of ₹67,000 was blocked — HIGH risk score (80)",
+    "time": "2025-06-02T02:16:00Z",
+    "severity": "high",
+    "read": false
+  },
+  {
+    "id": "alt177098023429727",
+    "userId": "u001",
+    "type": "blocked_transaction",
+    "message": "Transaction ₹92,488 blocked — HIGH (score: 85) via Samsung Galaxy S24 · Chrome",
+    "time": "2026-02-13T10:57:14.297Z",
+    "severity": "high",
+    "read": false
+  },
+  {
+    "id": "alt1770980386730151",
+    "userId": "u1770980375902800",
+    "type": "new_device",
+    "message": "New device login: Chrome/Windows",
+    "time": "2026-02-13T10:59:46.730Z",
+    "severity": "medium",
+    "read": false
+  },
+  {
+    "id": "alt1770981599162567",
+    "userId": "u001",
+    "type": "blocked_transaction",
+    "message": "Transaction ₹10,840 blocked — MEDIUM (score: 45) via Pixel 8 · Firefox",
+    "time": "2026-02-13T11:19:59.162Z",
+    "severity": "high",
+    "read": false
+  }
+]

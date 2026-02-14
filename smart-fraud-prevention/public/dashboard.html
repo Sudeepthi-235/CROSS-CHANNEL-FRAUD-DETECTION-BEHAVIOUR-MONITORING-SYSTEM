@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Smart Fraud Prevention</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-mount"></div>
+  <div class="main-content">
+    <div class="page-header">
+      <div><h1>Dashboard</h1><p id="header-greeting">Loading…</p></div>
+      <button class="simulate-btn" onclick="simulateTransaction()">⚡ Simulate Transaction</button>
+    </div>
+    <div class="page-body">
+
+      <!-- New device banner -->
+      <div id="new-device-banner" style="display:none; background:linear-gradient(135deg,#fffbeb,#fff7ed); border:1.5px solid #fcd34d; border-radius:12px; padding:12px 16px; margin-bottom:18px; align-items:center; gap:10px;">
+        <span style="font-size:1.1rem">⚠️</span>
+        <div style="flex:1"><strong style="font-size:0.85rem; color:#92400e">New Device Detected</strong>
+          <p style="font-size:0.78rem; color:#b45309; margin-top:1px">Device <span id="banner-device"></span> hasn't been seen before. If this wasn't you, <a href="alerts.html" style="color:#92400e; font-weight:600">check Alerts</a>.</p>
+        </div>
+        <button onclick="this.closest('[id]').style.display='none'" style="background:none;border:none;font-size:1rem;color:#92400e;cursor:pointer">✕</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid mb-6">
+        <div class="stat-card purple"><div class="stat-icon">💳</div><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total Transactions</div></div>
+        <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-value" id="stat-approved">—</div><div class="stat-label">Approved</div></div>
+        <div class="stat-card red"><div class="stat-icon">🚫</div><div class="stat-value" id="stat-blocked">—</div><div class="stat-label">Blocked</div></div>
+        <div class="stat-card blue"><div class="stat-icon">🔔</div><div class="stat-value" id="stat-alerts">—</div><div class="stat-label">Active Alerts</div></div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div class="card-header"><h3>💳 Recent Transactions</h3><a href="transactions.html" style="font-size:0.78rem;color:var(--primary);font-weight:600">View All →</a></div>
+        <div id="txn-container"><div class="empty-state loading"><div class="es-icon">⏳</div><p>Loading…</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== TRANSACTION MODAL ====== -->
+<div class="modal-overlay" id="txn-modal">
+  <div class="modal">
+    <div class="modal-icon warning" id="modal-icon">⚠️</div>
+    <h2 id="modal-title">Incoming Transaction</h2>
+    <p class="modal-sub" id="modal-sub">Review and decide</p>
+
+    <div class="txn-detail-box">
+      <div class="txn-detail-row"><span class="tdr-label">Amount</span><span class="tdr-value" id="modal-amount">—</span></div>
+      <div class="txn-detail-row"><span class="tdr-label">To / Merchant</span><span class="tdr-value" id="modal-merchant">—</span></div>
+      <div class="txn-detail-row"><span class="tdr-label">Location</span><span class="tdr-value" id="modal-location">—</span></div>
+      <div class="txn-detail-row"><span class="tdr-label">Device</span><span class="tdr-value" id="modal-device">—</span></div>
+      <div class="txn-detail-row"><span class="tdr-label">Time</span><span class="tdr-value" id="modal-time">—</span></div>
+      <div class="txn-detail-row"><span class="tdr-label">Risk Level</span><span id="modal-risk-badge">—</span></div>
+    </div>
+
+    <!-- Risk score bar -->
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label"><span>Risk Score Calculation</span><span id="modal-risk-score">0/100</span></div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" id="modal-risk-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Risk factor chips -->
+    <div id="risk-factor-chips" class="risk-breakdown-grid" style="margin-bottom:14px;"></div>
+
+    <!-- Risk reasons -->
+    <div class="risk-reasons" id="modal-reasons"></div>
+
+    <!-- OTP section — HIGH risk only -->
+    <div id="otp-section" style="display:none">
+      <input type="text" class="otp-input" id="otp-input" placeholder="· · · ·" maxlength="4" />
+      <p class="otp-hint">🔐 Enter OTP sent to your mobile. <strong>(Demo: 1234)</strong></p>
+    </div>
+
+    <div class="modal-actions" id="modal-actions">
+      <button class="btn btn-danger" onclick="blockTransaction()">🚫 Block</button>
+      <button class="btn btn-success" id="approve-btn" onclick="approveTransaction()">✅ Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SUSPICIOUS FLAG MODAL ====== -->
+<div class="modal-overlay" id="suspicious-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="document.getElementById('suspicious-modal').classList.remove('show')">✕</button>
+    <div class="modal-icon warning">🚩</div>
+    <h2>Flag Transaction</h2>
+    <p class="modal-sub">Select a transaction to flag as suspicious</p>
+    <div class="form-group mb-4">
+      <label>Select Transaction</label>
+      <select id="flag-txn-select" style="padding:10px 13px; border:1.5px solid var(--border); border-radius:8px; background:var(--bg-main); outline:none; font-size:0.85rem;"></select>
+    </div>
+    <div class="form-group mb-4">
+      <label>Reason (optional)</label>
+      <textarea id="flag-reason" rows="3" style="padding:10px 13px; border:1.5px solid var(--border); border-radius:8px; background:var(--bg-main); outline:none; font-size:0.85rem; resize:vertical;" placeholder="e.g. I did not make this transaction…"></textarea>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-secondary flex-1" onclick="document.getElementById('suspicious-modal').classList.remove('show')">Cancel</button>
+      <button class="btn btn-warning flex-1" onclick="submitSuspicious()">🚩 Flag It</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  requireAuth();
+  const user = getUser();
+  let pendingTxn = null;
+
+  document.getElementById('header-greeting').textContent = `Welcome back, ${user.name.split(' ')[0]}! Monitoring in real-time.`;
+  if (localStorage.getItem('sfp_new_device') === 'true') {
+    const b = document.getElementById('new-device-banner');
+    b.style.display = 'flex';
+    document.getElementById('banner-device').textContent = getDeviceId();
+    localStorage.removeItem('sfp_new_device');
+  }
+
+  async function loadDashboard() {
+    await renderSidebar('dashboard');
+    const [txnRes, alertRes] = await Promise.all([
+      fetch(`/transactions?userId=${user.id}`),
+      fetch(`/alerts?userId=${user.id}`)
+    ]);
+    const txns   = await txnRes.json();
+    const alerts = await alertRes.json();
+
+    document.getElementById('stat-total').textContent    = txns.length;
+    document.getElementById('stat-approved').textContent = txns.filter(t=>t.status==='approved').length;
+    document.getElementById('stat-blocked').textContent  = txns.filter(t=>t.status==='blocked').length;
+    document.getElementById('stat-alerts').textContent   = alerts.filter(a=>!a.read).length;
+
+    renderTransactions(txns.slice(0,8));
+  }
+
+  function renderTransactions(txns) {
+    const c = document.getElementById('txn-container');
+    if (!txns.length) {
+      c.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><p>No transactions yet. Simulate one above!</p></div>`;
+      return;
+    }
+    c.innerHTML = `<table class="txn-table"><thead><tr>
+      <th>To / Merchant</th><th>Amount</th><th>Device</th><th>Location</th><th>Risk</th><th>Status</th><th>Time</th><th></th>
+    </tr></thead><tbody>
+      ${txns.map(t=>`<tr>
+        <td class="txn-merchant">${t.merchant || 'Transfer'}${t.flaggedSuspicious?` <span class="badge badge-suspicious">🚩 Flagged</span>`:''}</td>
+        <td class="txn-amount">${formatCurrency(t.amount)}</td>
+        <td class="txn-loc" style="font-size:0.75rem">🖥️ ${t.device}</td>
+        <td class="txn-loc">📍 ${t.location}</td>
+        <td>${riskBadge(t.riskLevel)}</td>
+        <td>${statusBadge(t.status)}</td>
+        <td class="txn-time">${formatTime(t.time)}</td>
+        <td>${!t.flaggedSuspicious && t.status!=='blocked'?`<button class="btn btn-sm btn-secondary" style="font-size:0.7rem;padding:4px 9px" onclick="openSuspiciousModal('${t.id}')">🚩 Flag</button>`:''}
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  async function simulateTransaction() {
+    const btn = document.querySelector('.simulate-btn');
+    btn.textContent = '⏳ Simulating…'; btn.disabled = true;
+    try {
+      const res = await fetch('/transaction/new', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ userId: user.id, deviceId: getDeviceId() })
+      });
+      const data = await res.json();
+      if (!data.success) { showToast('Failed to create transaction.','error'); return; }
+      pendingTxn = data.transaction;
+
+      if (pendingTxn.riskLevel === 'LOW') {
+        await fetch('/transaction/approve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ transactionId: pendingTxn.id }) });
+        showToast(`✅ ${formatCurrency(pendingTxn.amount)} auto-approved (LOW risk)`, 'success');
+        pendingTxn = null;
+        loadDashboard();
+      } else {
+        showTransactionModal(pendingTxn);
+      }
+    } catch(e) { showToast('Server error. Is the server running?','error'); }
+    finally { btn.textContent = '⚡ Simulate Transaction'; btn.disabled = false; }
+  }
+
+  function showTransactionModal(txn) {
+    document.getElementById('modal-amount').textContent   = formatCurrency(txn.amount);
+    document.getElementById('modal-merchant').textContent = txn.merchant || 'Wire Transfer';
+    document.getElementById('modal-location').textContent = '📍 ' + txn.location;
+    document.getElementById('modal-device').textContent   = '🖥️ ' + txn.device;
+    document.getElementById('modal-time').textContent     = formatTime(txn.time);
+    document.getElementById('modal-risk-badge').innerHTML = riskBadge(txn.riskLevel);
+    document.getElementById('modal-risk-score').textContent = txn.riskScore + ' / 100';
+
+    const fill = document.getElementById('modal-risk-fill');
+    fill.style.width = txn.riskScore + '%';
+    fill.className = 'risk-bar-fill ' + txn.riskLevel.toLowerCase();
+
+    // Risk factor chips with scores
+    const factors = [
+      { label: 'Amount',    triggered: txn.amount > 50000,     score: 40, desc: txn.amount>50000?`+40 (>₹50k)`:'0' },
+      { label: 'Device',    triggered: txn.riskReasons?.some(r=>r.includes('Unknown device')), score: 25, desc: txn.riskReasons?.some(r=>r.includes('Unknown'))? '+25':' 0' },
+      { label: 'Location',  triggered: txn.riskReasons?.some(r=>r.includes('New location')),  score: 20, desc: txn.riskReasons?.some(r=>r.includes('location'))?'+20':'0' },
+      { label: 'Night Time',triggered: txn.riskReasons?.some(r=>r.includes('Night')),          score: 15, desc: txn.riskReasons?.some(r=>r.includes('Night'))?'+15':'0' }
+    ];
+    document.getElementById('risk-factor-chips').innerHTML = factors.map(f=>`
+      <div class="risk-factor-chip ${f.triggered?'triggered':''}">
+        <div class="rfc-label">${f.label}</div>
+        <div class="rfc-value">${f.triggered?'⚠️ '+f.desc:'✓ No risk'}</div>
+      </div>`).join('');
+
+    document.getElementById('modal-reasons').innerHTML = (txn.riskReasons||[]).map(r=>`<span class="risk-reason-tag">⚑ ${r}</span>`).join('');
+
+    const modalIcon  = document.getElementById('modal-icon');
+    const modalTitle = document.getElementById('modal-title');
+    const modalSub   = document.getElementById('modal-sub');
+    const otpSection = document.getElementById('otp-section');
+    const approveBtn = document.getElementById('approve-btn');
+
+    if (txn.riskLevel === 'HIGH') {
+      // HIGH: OTP required
+      modalIcon.textContent = '🚨'; modalIcon.className = 'modal-icon danger';
+      modalTitle.textContent = 'High-Risk Transaction — OTP Required!';
+      modalSub.textContent   = 'Enter the OTP sent to your registered mobile to approve this transaction.';
+      otpSection.style.display = 'block';
+      approveBtn.textContent = '🔐 Verify OTP & Approve';
+    } else {
+      // MEDIUM: just approval, no OTP
+      modalIcon.textContent = '⚠️'; modalIcon.className = 'modal-icon warning';
+      modalTitle.textContent = 'Suspicious Transaction Detected';
+      modalSub.textContent   = 'Is this you? Review the details and approve or block.';
+      otpSection.style.display = 'none';
+      approveBtn.textContent = '✅ Yes, This Is Me — Approve';
+    }
+    document.getElementById('txn-modal').classList.add('show');
+  }
+
+  async function approveTransaction() {
+    if (!pendingTxn) return;
+    // HIGH needs OTP, MEDIUM does NOT
+    if (pendingTxn.riskLevel === 'HIGH') {
+      const otp = document.getElementById('otp-input').value.trim();
+      if (otp !== '1234') { showToast('Invalid OTP. Demo OTP is 1234','error'); return; }
+    }
+    await fetch('/transaction/approve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ transactionId: pendingTxn.id }) });
+    document.getElementById('txn-modal').classList.remove('show');
+    document.getElementById('otp-input').value = '';
+    showToast(`✅ ${formatCurrency(pendingTxn.amount)} approved successfully!`, 'success');
+    pendingTxn = null;
+    loadDashboard();
+  }
+
+  async function blockTransaction() {
+    if (!pendingTxn) return;
+    await fetch('/transaction/block', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ transactionId: pendingTxn.id, userId: user.id }) });
+    document.getElementById('txn-modal').classList.remove('show');
+    showToast('🚫 Transaction blocked. Your account & device remain fully accessible.', 'warning', 4500);
+    pendingTxn = null;
+    loadDashboard();
+  }
+
+  // ---- Suspicious flag ----
+  let allUserTxns = [];
+  async function openSuspiciousModal(preSelectId) {
+    const res = await fetch(`/transactions?userId=${user.id}`);
+    allUserTxns = await res.json();
+    const eligible = allUserTxns.filter(t => !t.flaggedSuspicious && t.status !== 'blocked');
+    const sel = document.getElementById('flag-txn-select');
+    sel.innerHTML = eligible.map(t=>`<option value="${t.id}" ${t.id===preSelectId?'selected':''}>${formatCurrency(t.amount)} — ${t.merchant} (${formatTime(t.time)})</option>`).join('');
+    document.getElementById('flag-reason').value = '';
+    document.getElementById('suspicious-modal').classList.add('show');
+  }
+
+  async function submitSuspicious() {
+    const txnId  = document.getElementById('flag-txn-select').value;
+    const reason = document.getElementById('flag-reason').value.trim();
+    if (!txnId) { showToast('Select a transaction first','error'); return; }
+    const res = await fetch('/transaction/suspicious', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ transactionId: txnId, userId: user.id, reason })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('suspicious-modal').classList.remove('show');
+      showToast('🚩 Transaction flagged. Security team has been alerted.', 'warning');
+      loadDashboard();
+    }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

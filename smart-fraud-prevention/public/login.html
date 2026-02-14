@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Fraud Prevention — Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="auth-page">
+
+  <div class="auth-container">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="logo-icon">🛡️</div>
+      <h1>SecureBank <span>Fraud Prevention System</span></h1>
+    </div>
+
+    <!-- Tabs: Signup first for new users, Login for returning -->
+    <div class="auth-tabs">
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+    </div>
+
+    <!-- ---- SIGNUP FORM ---- -->
+    <div id="form-signup" class="auth-form hidden">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="signup-name" placeholder="e.g. Arjun Sharma" />
+      </div>
+      <div class="form-group">
+        <label>Bank Account Number</label>
+        <input type="text" id="signup-acct" placeholder="e.g. 4532-7891-0234-5678" />
+      </div>
+      <div class="form-group">
+        <label>Email (optional)</label>
+        <input type="email" id="signup-email" placeholder="email@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Phone (optional)</label>
+        <input type="text" id="signup-phone" placeholder="+91 98765 43210" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-pass" placeholder="Create a password" />
+      </div>
+      <div class="auth-error" id="signup-error"></div>
+      <button class="btn btn-primary btn-full" onclick="doSignup()">🔐 Create Account</button>
+      <p class="text-sm text-muted" style="text-align:center; margin-top:4px;">
+        Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--primary)">Login</a>
+      </p>
+    </div>
+
+    <!-- ---- LOGIN FORM ---- -->
+    <div id="form-login" class="auth-form">
+      <div class="form-group">
+        <label>Bank Account Number</label>
+        <input type="text" id="login-acct" placeholder="e.g. 4532-7891-0234-5678"
+               value="4532-7891-0234-5678" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Your password" value="pass123" />
+      </div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">🔑 Login</button>
+      <p class="text-sm text-muted" style="text-align:center; margin-top:4px;">
+        New user? <a href="#" onclick="switchTab('signup')" style="color:var(--primary)">Create account</a>
+      </p>
+      <!-- Demo hint -->
+      <div style="background:var(--info-bg); border-radius:8px; padding:10px 12px; margin-top:8px; font-size:0.78rem; color:var(--info);">
+        💡 <strong>Demo account pre-filled.</strong> Click Login to try!
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Switch between signup and login tabs
+    function switchTab(tab) {
+      document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
+      document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    }
+
+    // Detect device fingerprint from browser
+    function getDeviceId() {
+      const ua = navigator.userAgent;
+      if (ua.includes('Chrome')) return 'Chrome/Windows';
+      if (ua.includes('Firefox')) return 'Firefox/Windows';
+      if (ua.includes('Safari') && ua.includes('iPhone')) return 'Safari/iPhone';
+      if (ua.includes('Safari')) return 'Safari/Mac';
+      return 'Unknown Browser';
+    }
+
+    // ---- SIGNUP ----
+    async function doSignup() {
+      const name    = document.getElementById('signup-name').value.trim();
+      const acct    = document.getElementById('signup-acct').value.trim();
+      const email   = document.getElementById('signup-email').value.trim();
+      const phone   = document.getElementById('signup-phone').value.trim();
+      const pass    = document.getElementById('signup-pass').value;
+      const errEl   = document.getElementById('signup-error');
+      errEl.classList.remove('show');
+
+      if (!name || !acct || !pass) {
+        errEl.textContent = 'Name, account number and password are required.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, accountNumber: acct, email, phone, password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errEl.textContent = data.error || 'Signup failed.';
+          errEl.classList.add('show');
+        } else {
+          // Switch to login and pre-fill
+          switchTab('login');
+          document.getElementById('login-acct').value = acct;
+          document.getElementById('login-pass').value = pass;
+          alert('✅ Account created! Please login.');
+        }
+      } catch (e) {
+        errEl.textContent = 'Server error. Is the server running?';
+        errEl.classList.add('show');
+      }
+    }
+
+    // ---- LOGIN ----
+    async function doLogin() {
+      const acct  = document.getElementById('login-acct').value.trim();
+      const pass  = document.getElementById('login-pass').value;
+      const errEl = document.getElementById('login-error');
+      errEl.classList.remove('show');
+
+      if (!acct || !pass) {
+        errEl.textContent = 'Please enter account number and password.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountNumber: acct, password: pass, deviceId: getDeviceId() })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errEl.textContent = data.error || 'Invalid credentials.';
+          errEl.classList.add('show');
+        } else {
+          // Save user session in localStorage
+          localStorage.setItem('sfp_user', JSON.stringify(data.user));
+          localStorage.setItem('sfp_device', getDeviceId());
+          localStorage.setItem('sfp_new_device', data.newDeviceAlert ? 'true' : 'false');
+          window.location.href = 'dashboard.html';
+        }
+      } catch (e) {
+        errEl.textContent = 'Server error. Make sure the server is running!';
+        errEl.classList.add('show');
+      }
+    }
+
+    // Allow Enter key on login form
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const activeForm = document.getElementById('form-login').classList.contains('hidden') ? 'signup' : 'login';
+        if (activeForm === 'login') doLogin();
+        else doSignup();
+      }
+    });
+  </script>
+</body>
+</html>

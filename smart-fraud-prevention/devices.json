@@ -1,0 +1,16 @@
+[
+  {
+    "userId": "u001",
+    "deviceId": "Chrome/Windows",
+    "firstSeen": "2025-05-15T09:00:00Z",
+    "lastSeen": "2026-02-13T15:39:23.267Z",
+    "trusted": true
+  },
+  {
+    "userId": "u1770980375902800",
+    "deviceId": "Chrome/Windows",
+    "firstSeen": "2026-02-13T10:59:46.728Z",
+    "lastSeen": "2026-02-13T10:59:46.728Z",
+    "trusted": false
+  }
+]

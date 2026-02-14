@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Report a Problem — Smart Fraud Prevention</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-mount"></div>
+  <div class="main-content">
+    <div class="page-header">
+      <div><h1>🚨 Report a Problem</h1><p>Contact our fraud support team immediately</p></div>
+    </div>
+    <div class="page-body">
+
+      <!-- Emergency contact card -->
+      <div class="report-contact-card mb-6">
+        <h3>🛡️ SecureBank Fraud Support</h3>
+        <p>If you believe your account has been compromised or you've spotted a fraudulent transaction, reach us through any of these channels immediately.</p>
+        <div class="contact-methods">
+          <a href="tel:+1800-123-4567" class="contact-chip">📞 1800-123-4567 <span style="font-size:0.7rem;color:var(--text-muted)">(Toll-Free)</span></a>
+          <a href="mailto:fraud@securebank.in" class="contact-chip">✉️ fraud@securebank.in</a>
+          <a href="https://securebank.in/support" target="_blank" class="contact-chip">🌐 securebank.in/support</a>
+        </div>
+        <p style="margin-top:14px; font-size:0.78rem; color:var(--text-muted)">⏰ Available 24 × 7 · Average response: &lt; 5 minutes for HIGH risk cases</p>
+      </div>
+
+      <div class="two-col">
+        <!-- Info -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card">
+            <div class="card-header"><h3>⚠️ Immediate Steps</h3></div>
+            <div class="card-body" style="font-size:0.83rem;color:var(--text-secondary);line-height:1.7">
+              <p>• <strong>Block</strong> any suspicious pending transactions</p>
+              <p>• <strong>Change</strong> your password immediately via Settings</p>
+              <p>• <strong>Don't</strong> share OTP with anyone, even bank staff</p>
+              <p>• <strong>Call</strong> 1800-123-4567 for urgent assistance</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>💡 How We Help</h3></div>
+            <div class="card-body" style="font-size:0.83rem;color:var(--text-secondary);line-height:1.7">
+              <p>1. Contact us using email or phone above</p>
+              <p>2. Our fraud team responds within <strong>5–15 minutes</strong></p>
+              <p>3. You'll receive a confirmation via email / SMS</p>
+              <p>4. If fraud is confirmed, disputed amounts are refunded within <strong>5–7 business days</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  requireAuth();
+  const user = getUser();
+  renderSidebar('report');
+</script>
+</body>
+</html>

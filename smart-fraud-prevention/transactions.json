@@ -1,0 +1,113 @@
+[
+  {
+    "id": "txn001",
+    "userId": "u001",
+    "amount": 12500,
+    "location": "Mumbai, India",
+    "device": "Chrome/Windows",
+    "time": "2025-06-01T10:30:00Z",
+    "status": "approved",
+    "riskScore": 15,
+    "riskLevel": "LOW"
+  },
+  {
+    "id": "txn002",
+    "userId": "u001",
+    "amount": 67000,
+    "location": "Delhi, India",
+    "device": "Safari/iPhone",
+    "time": "2025-06-02T02:15:00Z",
+    "status": "blocked",
+    "riskScore": 80,
+    "riskLevel": "HIGH"
+  },
+  {
+    "id": "txn1770980191890824",
+    "userId": "u001",
+    "amount": 15005,
+    "location": "London, UK",
+    "device": "MacBook Pro 16 · Safari",
+    "merchant": "Flipkart",
+    "type": "merchant",
+    "time": "2026-02-13T10:56:31.890Z",
+    "status": "approved",
+    "riskScore": 45,
+    "riskLevel": "MEDIUM",
+    "riskReasons": [
+      "Unknown device: MacBook Pro 16 · Safari",
+      "New location: London, UK"
+    ],
+    "resolvedAt": "2026-02-13T10:56:39.250Z"
+  },
+  {
+    "id": "txn1770980228678236",
+    "userId": "u001",
+    "amount": 92488,
+    "location": "Hyderabad, India",
+    "device": "Samsung Galaxy S24 · Chrome",
+    "merchant": "Amazon India",
+    "type": "merchant",
+    "time": "2026-02-13T10:57:08.678Z",
+    "status": "blocked",
+    "riskScore": 85,
+    "riskLevel": "HIGH",
+    "riskReasons": [
+      "High amount: ₹92,488",
+      "Unknown device: Samsung Galaxy S24 · Chrome",
+      "New location: Hyderabad, India"
+    ],
+    "resolvedAt": "2026-02-13T10:57:14.291Z"
+  },
+  {
+    "id": "txn177098154388992",
+    "userId": "u001",
+    "amount": 10840,
+    "location": "Singapore",
+    "device": "Pixel 8 · Firefox",
+    "merchant": "International Wire",
+    "type": "merchant",
+    "time": "2026-02-13T11:19:03.889Z",
+    "status": "blocked",
+    "riskScore": 45,
+    "riskLevel": "MEDIUM",
+    "riskReasons": [
+      "Unknown device: Pixel 8 · Firefox",
+      "New location: Singapore"
+    ],
+    "resolvedAt": "2026-02-13T11:19:59.155Z"
+  },
+  {
+    "id": "txn177099716825825",
+    "userId": "u001",
+    "amount": 48805,
+    "location": "Singapore",
+    "device": "MacBook Pro 16 · Safari",
+    "merchant": "Crypto Exchange",
+    "type": "merchant",
+    "time": "2026-02-13T15:39:28.258Z",
+    "status": "approved",
+    "riskScore": 25,
+    "riskLevel": "LOW",
+    "riskReasons": [
+      "Unknown device: MacBook Pro 16 · Safari"
+    ],
+    "resolvedAt": "2026-02-13T15:39:28.282Z"
+  },
+  {
+    "id": "txn17709971720143",
+    "userId": "u001",
+    "amount": 81991,
+    "location": "London, UK",
+    "device": "MacBook Pro 16 · Safari",
+    "merchant": "Zomato",
+    "type": "merchant",
+    "time": "2026-02-13T15:39:32.014Z",
+    "status": "pending",
+    "riskScore": 65,
+    "riskLevel": "MEDIUM",
+    "riskReasons": [
+      "High amount: ₹81,991",
+      "Unknown device: MacBook Pro 16 · Safari"
+    ]
+  }
+]

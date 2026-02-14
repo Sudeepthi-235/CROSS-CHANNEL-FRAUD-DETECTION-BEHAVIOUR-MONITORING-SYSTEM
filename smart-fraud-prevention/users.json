@@ -1,0 +1,34 @@
+[
+  {
+    "id": "u001",
+    "name": "Arjun Sharma",
+    "accountNumber": "4532-7891-0234-5678",
+    "password": "pass123",
+    "email": "arjun@example.com",
+    "phone": "+91 98765 43210",
+    "joinDate": "2022-03-15",
+    "isFrozen": false,
+    "blockedTransactions": []
+  },
+  {
+    "id": "u002",
+    "name": "Priya Mehta",
+    "accountNumber": "9876-5432-1098-7654",
+    "password": "pass456",
+    "email": "priya@example.com",
+    "phone": "+91 87654 32109",
+    "joinDate": "2021-11-20",
+    "isFrozen": false,
+    "blockedTransactions": []
+  },
+  {
+    "id": "u1770980375902800",
+    "name": "sudeep",
+    "accountNumber": "123-555-666",
+    "password": "sudeep123",
+    "email": "sudeep@123",
+    "phone": "",
+    "joinDate": "2026-02-13",
+    "isFrozen": false
+  }
+]
