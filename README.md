@@ -86,3 +86,6 @@ Real-time API data integration
 Sharanya Reddy
 B.Tech – Data Science
 GitHub: https://github.com/SharanyaReddy27
+Collaborator
+P.Sudeepthi
+B.Tech - Data Science
